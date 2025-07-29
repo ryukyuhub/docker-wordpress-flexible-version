@@ -1,0 +1,41 @@
+FROM php:7.4-apache
+
+# Install dependencies for PHP 7.4
+RUN apt-get update && apt-get install -y \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libzip-dev \
+    git \
+    curl \
+    wget \
+    unzip \
+    zip \
+    vim \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configure and install PHP extensions for PHP 7.4
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+        gd \
+        mysqli \
+        pdo_mysql \
+        zip
+
+# Enable Apache rewrite module
+RUN a2enmod rewrite
+
+# Copy configuration files
+COPY .bashrc /root/.bashrc
+COPY .vimrc /root/.vimrc
+
+# Copy custom PHP configuration
+COPY php.ini /usr/local/etc/php/php.ini
+
+WORKDIR /var/www/html
+
+# Copy and set up startup script to fix permissions on mounted volumes
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+CMD ["/usr/local/bin/docker-entrypoint.sh"]

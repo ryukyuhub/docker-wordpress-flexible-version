@@ -1,0 +1,49 @@
+services:
+  wordpress:
+    build:
+      context: ./wordpress
+      dockerfile: Dockerfile-8.3 # PHP Version 8.3
+      # dockerfile: Dockerfile-7.4 # PHP Version 7.4
+      # dockerfile: Dockerfile-5.6 # PHP Version 5.6
+    ports:
+      - "8080:80"
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_USER: ${DB_USER} # .env より取得
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD} # .env より取得
+      WORDPRESS_DB_NAME: ${DB_NAME} # .env より取得
+    volumes:
+      - ./themes:/var/www/html/wp-content/themes # テーマファイル群をホストとコンテナ間でマウント
+      - ./plugins:/var/www/html/wp-content/plugins # プラグインファイル群をホストとコンテナ間でマウント
+      - wordpress_data:/var/www/html # 'themes'と'plugins'以外はホストの'Docker Volume'に保存するので、ディレクトリではない
+    depends_on:
+      - mysql # mysqlコンテナが起動してからwordpressコンテナを起動する
+
+  mysql:
+    image: mysql:8.0
+    # image: mysql:5.5.62
+    environment:
+      MYSQL_DATABASE: ${DB_NAME} # .env より取得
+      MYSQL_USER: ${DB_USER} # .env より取得
+      MYSQL_PASSWORD: ${DB_PASSWORD} # .env より取得
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD} # .env より取得
+    volumes:
+      - mysql_data:/var/lib/mysql # データベースはホストの'Docker Volume'に保存するので、ディレクトリではない
+    ports:
+      - "3308:3306"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: mysql # mysqlコンテナ名
+      PMA_PORT: 3306
+      PMA_USER: ${DB_USER} # .env より取得
+      PMA_PASSWORD: ${DB_PASSWORD} # .env より取得
+    depends_on:
+      - mysql # mysqlコンテナが起動してからphpmyadminコンテナを起動する
+
+volumes:
+  wordpress_data:
+  mysql_data:

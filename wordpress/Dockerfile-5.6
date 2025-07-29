@@ -1,0 +1,44 @@
+FROM php:5.6-apache
+
+# Fix Debian Stretch repositories (archived) and disable GPG verification
+RUN echo "deb [trusted=yes] http://archive.debian.org/debian stretch main" > /etc/apt/sources.list \
+    && echo "deb [trusted=yes] http://archive.debian.org/debian-security stretch/updates main" >> /etc/apt/sources.list
+
+# Install dependencies for PHP 5.6
+RUN apt-get update && apt-get install -y \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libmcrypt-dev \
+    curl \
+    wget \
+    unzip \
+    zip \
+    vim \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configure and install PHP extensions for PHP 5.6
+RUN docker-php-ext-install -j$(nproc) \
+        mysqli \
+        pdo_mysql \
+        mcrypt \
+    && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+    && docker-php-ext-install -j$(nproc) gd
+
+# Enable Apache rewrite module
+RUN a2enmod rewrite
+
+# Copy configuration files (commented out as files don't exist)
+COPY .bashrc /root/.bashrc
+COPY .vimrc /root/.vimrc
+
+# Copy custom PHP configuration
+COPY php.ini /usr/local/etc/php/php.ini
+
+WORKDIR /var/www/html
+
+# Copy and set up startup script to fix permissions on mounted volumes
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+CMD ["/usr/local/bin/docker-entrypoint.sh"]
