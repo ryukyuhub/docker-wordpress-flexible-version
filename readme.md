@@ -1,16 +1,12 @@
-# プロジェクト構成
-
 ## ディレクトリ構成
 ```
 /
-├── .env                    # 環境変数ファイル
+├── .env # 環境変数ファイル
 ├── .git/
-├── cmd.md                  # コンテナ操作コマンド
 ├── docker-compose.yml
-├── structure.md
-├── plugins/                # WordPressプラグイン用ディレクトリ
+├── plugins/ # WordPressプラグイン用ディレクトリ
 │   └── (初期は空 - プラグインファイルがマウントされる場所)
-├── themes/                 # WordPressテーマ用ディレクトリ
+├── themes/  # WordPressテーマ用ディレクトリ
 │   └── (初期は空 - テーマファイルがマウントされる場所)
 └── wordpress/               # Docker設定ファイル
     ├── Dockerfile-5.6       # PHP 5.6環境
@@ -63,3 +59,13 @@
 3. 変更は即座にコンテナに反映される
 4. http://localhost:8080 でWordPressアクセス
 5. http://localhost:8081 でphpMyAdminアクセス
+
+## ホストからコンテナに入る
+```bash
+docker exec -it wordpress-wordpress-1 bash
+```
+
+## ホストからコンテナと関連イメージとボリューム全削除
+```bash
+docker-compose down --rmi all --volumes --remove-orphans
+```
